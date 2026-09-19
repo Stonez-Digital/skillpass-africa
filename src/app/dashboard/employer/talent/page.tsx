@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { searchLearners } from "@/lib/learners";
 
 type Learner = {
@@ -64,14 +66,21 @@ export default function TalentSearchPage() {
       <div style={{ display: "grid", gap: 16 }}>
         {results.map((learner) => (
           <div key={learner.id} className="card" style={{ padding: 24 }}>
-            <h2 style={{ margin: "0 0 8px" }}>{learner.full_name}</h2>
-            {learner.location && <p style={{ color: "var(--muted)" }}>{learner.location}</p>}
-            {learner.biography && <p>{learner.biography}</p>}
-            {learner.selected_skills.length > 0 && (
-              <p style={{ marginTop: 12 }}>
-                <strong>Skills:</strong> {learner.selected_skills.join(", ")}
-              </p>
-            )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
+              <div>
+                <h2 style={{ margin: "0 0 8px" }}>{learner.full_name}</h2>
+                {learner.location && <p style={{ color: "var(--muted)" }}>{learner.location}</p>}
+                {learner.biography && <p>{learner.biography}</p>}
+                {learner.selected_skills.length > 0 && (
+                  <p style={{ marginTop: 12 }}>
+                    <strong>Skills:</strong> {learner.selected_skills.join(", ")}
+                  </p>
+                )}
+              </div>
+              <Link href={`/dashboard/employer/talent/${learner.id}`} className="button">
+                View profile
+              </Link>
+            </div>
           </div>
         ))}
       </div>
