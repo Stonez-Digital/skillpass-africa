@@ -1,8 +1,10 @@
+
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
+import type { ApplicationStatus } from "@/types/database";
 
 export async function applyToOpportunity(opportunityId: string, coverNote?: string) {
   const profile = await getCurrentProfile();
@@ -33,6 +35,7 @@ export async function applyToOpportunity(opportunityId: string, coverNote?: stri
   revalidatePath("/opportunities");
   return data;
 }
+
 export async function getMyApplicationIds() {
   const profile = await getCurrentProfile();
 
@@ -53,6 +56,7 @@ export async function getMyApplicationIds() {
 
   return data.map((row) => row.opportunity_id);
 }
+
 export async function listApplicationsForOpportunity(opportunityId: string) {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
@@ -81,5 +85,38 @@ export async function listApplicationsForOpportunity(opportunityId: string) {
     throw new Error(error.message);
   }
 
+  return data;
+}
+
+export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus) {
+  const profile = await getCurrentProfile();
+  const supabase = await createClient();
+
+  const { data: application, error: fetchError } = await supabase
+    .from("applications")
+    .select("opportunity_id, opportunities(employer_id)")
+    .eq("id", applicationId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  if (application.opportunities?.employer_id !== profile.id) {
+    throw new Error("You can only update applications for your own opportunities.");
+  }
+
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ status })
+    .eq("id", applicationId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(`/dashboard/employer/opportunities/${application.opportunity_id}/applicants`);
   return data;
 }
