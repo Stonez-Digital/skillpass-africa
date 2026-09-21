@@ -1,5 +1,6 @@
 import { listApplicationsForOpportunity } from "@/lib/applications";
 import { getOpportunity } from "@/lib/opportunities";
+import { StatusSelect } from "./status-select";
 
 export default async function ApplicantsPage({
   params,
@@ -26,24 +27,26 @@ export default async function ApplicantsPage({
       <div style={{ display: "grid", gap: 16 }}>
         {applications.map((application) => (
           <div key={application.id} className="card" style={{ padding: 24 }}>
-            <span style={{ color: "var(--muted)", fontSize: 14 }}>
-              Status: {application.status}
-            </span>
-            <h2 style={{ margin: "8px 0" }}>{application.profiles?.full_name}</h2>
-            <p style={{ color: "var(--muted)" }}>{application.profiles?.email}</p>
-            {application.profiles?.location && (
-              <p style={{ color: "var(--muted)" }}>{application.profiles.location}</p>
-            )}
-            {application.profiles?.selected_skills && application.profiles.selected_skills.length > 0 && (
-              <p style={{ marginTop: 12 }}>
-                <strong>Skills:</strong> {application.profiles.selected_skills.join(", ")}
-              </p>
-            )}
-            {application.cover_note && (
-              <p style={{ marginTop: 12 }}>
-                <strong>Note:</strong> {application.cover_note}
-              </p>
-            )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
+              <div>
+                <h2 style={{ margin: "0 0 8px" }}>{application.profiles?.full_name}</h2>
+                <p style={{ color: "var(--muted)" }}>{application.profiles?.email}</p>
+                {application.profiles?.location && (
+                  <p style={{ color: "var(--muted)" }}>{application.profiles.location}</p>
+                )}
+                {application.profiles?.selected_skills && application.profiles.selected_skills.length > 0 && (
+                  <p style={{ marginTop: 12 }}>
+                    <strong>Skills:</strong> {application.profiles.selected_skills.join(", ")}
+                  </p>
+                )}
+                {application.cover_note && (
+                  <p style={{ marginTop: 12 }}>
+                    <strong>Note:</strong> {application.cover_note}
+                  </p>
+                )}
+              </div>
+              <StatusSelect applicationId={application.id} currentStatus={application.status} />
+            </div>
           </div>
         ))}
       </div>
