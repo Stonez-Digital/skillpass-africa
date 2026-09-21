@@ -1,3 +1,4 @@
+
 import { getCandidateProfile } from "@/lib/learners";
 
 export default async function CandidateProfilePage({
@@ -24,7 +25,7 @@ export default async function CandidateProfilePage({
         <div style={{ display: "grid", gap: 12 }}>
           {verifications.map((v, i) => (
             <div key={i} className="card" style={{ padding: 16 }}>
-              <strong>{v.submissions?.assessments?.skills?.name}</strong>
+              <strong>{v.skillName ?? "Unknown skill"}</strong>
               {v.competency_rating && (
                 <span style={{ marginLeft: 8, color: "var(--muted)" }}>
                   Rating: {v.competency_rating}/5

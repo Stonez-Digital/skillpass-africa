@@ -1,3 +1,4 @@
+
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -33,6 +34,7 @@ export async function searchLearners(filters: { skill?: string; location?: strin
 
   return data;
 }
+
 export async function getCandidateProfile(learnerId: string) {
   const profile = await getCurrentProfile();
 
@@ -53,15 +55,63 @@ export async function getCandidateProfile(learnerId: string) {
     throw new Error(profileError.message);
   }
 
-  const { data: verifications, error: verificationError } = await supabase
+  const { data: rawVerifications, error: verificationError } = await supabase
     .from("skill_verifications")
-    .select("competency_rating, verified_at, verification_status, submissions!skill_verifications_submission_id_fkey(assessments!submissions_assessment_id_fkey(skills!assessments_skill_id_fkey(name)))")
+    .select("competency_rating, verified_at, submission_id")
     .eq("learner_id", learnerId)
     .eq("verification_status", "active")
     .eq("decision", "approved");
 
   if (verificationError) {
     throw new Error(verificationError.message);
+  }
+
+  const submissionIds = rawVerifications.map((v) => v.submission_id);
+
+  let verifications: { competency_rating: number | null; verified_at: string; skillName: string | null }[] = [];
+
+  if (submissionIds.length > 0) {
+    const { data: submissions, error: submissionsError } = await supabase
+      .from("submissions")
+      .select("id, assessment_id")
+      .in("id", submissionIds);
+
+    if (submissionsError) {
+      throw new Error(submissionsError.message);
+    }
+
+    const assessmentIds = submissions.map((s) => s.assessment_id);
+
+    const { data: assessments, error: assessmentsError } = await supabase
+      .from("assessments")
+      .select("id, skill_id")
+      .in("id", assessmentIds);
+
+    if (assessmentsError) {
+      throw new Error(assessmentsError.message);
+    }
+
+    const skillIds = assessments.map((a) => a.skill_id);
+
+    const { data: skills, error: skillsError } = await supabase
+      .from("skills")
+      .select("id, name")
+      .in("id", skillIds);
+
+    if (skillsError) {
+      throw new Error(skillsError.message);
+    }
+
+    verifications = rawVerifications.map((v) => {
+      const submission = submissions.find((s) => s.id === v.submission_id);
+      const assessment = submission ? assessments.find((a) => a.id === submission.assessment_id) : undefined;
+      const skill = assessment ? skills.find((sk) => sk.id === assessment.skill_id) : undefined;
+      return {
+        competency_rating: v.competency_rating,
+        verified_at: v.verified_at,
+        skillName: skill?.name ?? null,
+      };
+    });
   }
 
   const { data: portfolioItems, error: portfolioError } = await supabase
