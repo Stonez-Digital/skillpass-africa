@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { searchLearners } from "@/lib/learners";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { searchLearners, listSkillCategories } from "@/lib/learners";
 
 type Learner = {
   id: string;
@@ -11,12 +12,20 @@ type Learner = {
   selected_skills: string[];
 };
 
+type Category = { id: string; name: string };
+
 export default function TalentSearchPage() {
   const [skill, setSkill] = useState("");
   const [location, setLocation] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [results, setResults] = useState<Learner[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    listSkillCategories().then(setCategories).catch(() => {});
+  }, []);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -25,6 +34,7 @@ export default function TalentSearchPage() {
       const data = await searchLearners({
         skill: skill || undefined,
         location: location || undefined,
+        categoryId: categoryId || undefined,
       });
       setResults(data);
       setHasSearched(true);
@@ -39,7 +49,7 @@ export default function TalentSearchPage() {
         Discover talent
       </h1>
 
-      <form onSubmit={handleSearch} style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+      <form onSubmit={handleSearch} style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
         <input
           placeholder="Skill (e.g. React)"
           value={skill}
@@ -52,6 +62,14 @@ export default function TalentSearchPage() {
           onChange={(e) => setLocation(e.target.value)}
           className="input"
         />
+        <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="input">
+          <option value="">Any verified category</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
         <button type="submit" className="button" disabled={isLoading}>
           {isLoading ? "Searching..." : "Search"}
         </button>
@@ -64,14 +82,21 @@ export default function TalentSearchPage() {
       <div style={{ display: "grid", gap: 16 }}>
         {results.map((learner) => (
           <div key={learner.id} className="card" style={{ padding: 24 }}>
-            <h2 style={{ margin: "0 0 8px" }}>{learner.full_name}</h2>
-            {learner.location && <p style={{ color: "var(--muted)" }}>{learner.location}</p>}
-            {learner.biography && <p>{learner.biography}</p>}
-            {learner.selected_skills.length > 0 && (
-              <p style={{ marginTop: 12 }}>
-                <strong>Skills:</strong> {learner.selected_skills.join(", ")}
-              </p>
-            )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
+              <div>
+                <h2 style={{ margin: "0 0 8px" }}>{learner.full_name}</h2>
+                {learner.location && <p style={{ color: "var(--muted)" }}>{learner.location}</p>}
+                {learner.biography && <p>{learner.biography}</p>}
+                {learner.selected_skills.length > 0 && (
+                  <p style={{ marginTop: 12 }}>
+                    <strong>Skills:</strong> {learner.selected_skills.join(", ")}
+                  </p>
+                )}
+              </div>
+              <Link href={`/dashboard/employer/talent/${learner.id}`} className="button">
+                View profile
+              </Link>
+            </div>
           </div>
         ))}
       </div>
