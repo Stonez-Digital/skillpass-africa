@@ -26,6 +26,9 @@ export default async function CandidateProfilePage({
           {verifications.map((v, i) => (
             <div key={i} className="card" style={{ padding: 16 }}>
               <strong>{v.skillName ?? "Unknown skill"}</strong>
+              <span style={{ marginLeft: 8, fontSize: 12, color: "var(--green)" }}>
+                {v.verification_status}
+              </span>
               {v.competency_rating && (
                 <span style={{ marginLeft: 8, color: "var(--muted)" }}>
                   Rating: {v.competency_rating}/5
