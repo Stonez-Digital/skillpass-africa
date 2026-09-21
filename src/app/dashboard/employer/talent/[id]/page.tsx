@@ -1,4 +1,3 @@
-
 import { getCandidateProfile } from "@/lib/learners";
 
 export default async function CandidateProfilePage({
