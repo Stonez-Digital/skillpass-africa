@@ -55,7 +55,7 @@ export async function getCandidateProfile(learnerId: string) {
 
   const { data: verifications, error: verificationError } = await supabase
     .from("skill_verifications")
-    .select("competency_rating, verified_at, verification_status, submissions(assessments(skills(name)))")
+    .select("competency_rating, verified_at, verification_status, submissions!skill_verifications_submission_id_fkey(assessments!submissions_assessment_id_fkey(skills!assessments_skill_id_fkey(name)))")
     .eq("learner_id", learnerId)
     .eq("verification_status", "active")
     .eq("decision", "approved");
