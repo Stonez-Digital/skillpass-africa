@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import { LogoutButton } from "@/components/logout-button";
@@ -19,7 +18,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </>
         )}
         {profile.role === "administrator" && (
-          <Link href="/dashboard/administrator/opportunities" style={{ padding: 12, borderRadius: 10, fontWeight: 750 }}>Moderate opportunities</Link>
+          <>
+            <Link href="/dashboard/administrator/opportunities" style={{ padding: 12, borderRadius: 10, fontWeight: 750 }}>Moderate opportunities</Link>
+            <Link href="/dashboard/administrator/employers" style={{ padding: 12, borderRadius: 10, fontWeight: 750 }}>Employer verification</Link>
+          </>
         )}
         <Link href="/profile" style={{ padding: 12, borderRadius: 10, fontWeight: 750 }}>Edit profile</Link>
       </nav></aside>
