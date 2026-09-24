@@ -120,3 +120,38 @@ export async function updateApplicationStatus(applicationId: string, status: App
   revalidatePath(`/dashboard/employer/opportunities/${application.opportunity_id}/applicants`);
   return data;
 }
+
+export async function getMyApplications() {
+  const profile = await getCurrentProfile();
+
+  if (profile.role !== "learner") {
+    return [];
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("applications")
+    .select(`
+      id,
+      opportunity_id,
+      status,
+      cover_note,
+      created_at,
+      updated_at,
+      opportunities(
+        title,
+        organization,
+        opportunity_type,
+        work_arrangement
+      )
+    `)
+    .eq("learner_id", profile.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
