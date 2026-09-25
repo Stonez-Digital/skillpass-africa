@@ -35,13 +35,10 @@ export async function updateEmployerStatus(userId: string, status: "pending" | "
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .update({ employer_status: status })
-    .eq("id", userId)
-    .eq("role", "employer")
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc("admin_update_employer_status", {
+    target_user_id: userId,
+    new_status: status,
+  });
 
   if (error) {
     throw new Error(error.message);
