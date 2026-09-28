@@ -23,6 +23,10 @@ export async function createOpportunity(formData: {
     throw new Error("Only employers can create opportunities.");
   }
 
+  if (profile.employer_status !== "approved") {
+    throw new Error("Your employer account must be approved by an administrator before you can post opportunities.");
+  }
+
   const supabase = await createClient();
 
   const { data, error } = await supabase
