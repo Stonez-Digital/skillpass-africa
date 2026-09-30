@@ -1,4 +1,3 @@
-
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -21,6 +20,10 @@ export async function createOpportunity(formData: {
 
   if (profile.role !== "employer") {
     throw new Error("Only employers can create opportunities.");
+  }
+
+  if (profile.employer_status !== "approved") {
+    throw new Error("Your employer account must be approved by an administrator before you can post opportunities.");
   }
 
   const supabase = await createClient();
@@ -85,6 +88,11 @@ export async function listMyOpportunities() {
 
 export async function togglePublish(opportunityId: string, publish: boolean) {
   const profile = await getCurrentProfile();
+
+  if (publish && profile.employer_status !== "approved") {
+    throw new Error("Your employer account must be approved by an administrator before you can publish opportunities.");
+  }
+
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -103,6 +111,7 @@ export async function togglePublish(opportunityId: string, publish: boolean) {
   revalidatePath("/opportunities");
   return data;
 }
+
 export async function updateOpportunity(
   opportunityId: string,
   formData: {
@@ -118,6 +127,11 @@ export async function updateOpportunity(
   }
 ) {
   const profile = await getCurrentProfile();
+
+  if (profile.employer_status !== "approved") {
+    throw new Error("Your employer account must be approved by an administrator before you can edit opportunities.");
+  }
+
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -162,6 +176,7 @@ export async function getOpportunity(opportunityId: string) {
 
   return data;
 }
+
 export async function listAllOpportunitiesForAdmin() {
   const profile = await getCurrentProfile();
 
@@ -182,6 +197,7 @@ export async function listAllOpportunitiesForAdmin() {
 
   return data;
 }
+
 export async function adminSetPublishStatus(opportunityId: string, publish: boolean) {
   const profile = await getCurrentProfile();
 
